@@ -1,0 +1,14 @@
+{
+    "applications": {
+        "HillsideInstagram": {
+            "applicationId": "eFuSJQZXg58dnnYiOgDZM8FZ4ZKnH8i0Ebe0Rxbi", 
+            "masterKey": "ItKEtyVf8cZjoLsFQk2kv87HORBf5jam5om6WZ9T"
+        }, 
+        "_default": {
+            "link": "HillsideInstagram"
+        }
+    }, 
+    "global": {
+        "parseVersion": "1.2.18"
+    }
+}

@@ -1,0 +1,94 @@
+<!doctype html>
+<!--[if IE 9]><html class="lt-ie10" lang="en" > <![endif]-->
+<html class="no-js" lang="en" data-useragent="Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.2; Trident/6.0)">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Hillside</title>
+<meta name="description" content="Studio Nord"/>
+<meta name="author" content="Studio Nord"/>
+<meta name="copyright" content="Studio Nord, inc. Copyright (c) 2014"/>
+
+<script src="//www.parsecdn.com/js/parse-1.2.18.min.js"></script>
+
+<link rel="stylesheet" href="css/foundation.css"/>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js">
+</script>
+
+<script>
+
+function gotoPosts()
+{
+	window.location.replace("index.html");
+}
+
+function gotoUsers()
+{
+	window.location.replace("userlist.html");
+}
+
+</script>
+
+</head>
+<body>
+ 
+<div class="row">
+<div class="large-12 columns">
+<div class="nav-bar right">
+
+</div>
+<h1>Hillside <small>insta-list</small></h1>
+<hr/>
+</div>
+</div>
+ 
+ 
+<div class="row">
+
+	<button onclick="gotoPosts()">Post List</button>
+
+ 	<div id="target"></div>
+ 	<center>
+ 	<table id="results-table">
+    	<tr>
+      		<th width="150">Username</th>
+      		<th width="250">Follower</th>
+      		<th width="150">Following</th>
+      		<th width="150">Posts</th>
+      		<th width="250">Link</th>
+    	</tr>
+  	</table>
+  	</center>
+<div>
+
+</div>
+</div>
+
+<script type="text/javascript">
+
+Parse.initialize("eFuSJQZXg58dnnYiOgDZM8FZ4ZKnH8i0Ebe0Rxbi", "MRsv1pnv05LhWMQpXR9eJc0us5vad7difDbHK1Uw");
+    
+    var InstagramUser = Parse.Object.extend("InstagramUsers");
+    var query = new Parse.Query(InstagramUser);
+    query.limit(500);
+    query.descending("follower");
+    query.find({
+    success: function(results) {
+
+        for (var i = 0; i < results.length; i++) { 
+      var object = results[i];
+      (function($) {
+          $('#results-table').append('<tr><td>' + object.get('username') + '</td><td>' + object.get('follower') + '</td><td>'+object.get('following')+'</td><td>'+object.get("posts")+'</td><td><a href="http://www.instagram.com/'+object.get('username')+'" target="_blank">'+object.get('username')+'</a></td></tr>');
+})(jQuery);
+      
+    }
+    },
+    error: function(error) {
+    alert("Error: " + error.code + " " + error.message);
+    }
+});
+
+</script>
+
+</body>
+</html>

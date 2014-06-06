@@ -1,0 +1,311 @@
+<!doctype html>
+<!--[if IE 9]><html class="lt-ie10" lang="en" > <![endif]-->
+<html class="no-js" lang="en" data-useragent="Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.2; Trident/6.0)">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Hillside</title>
+<meta name="description" content="Studio Nord"/>
+<meta name="author" content="Studio Nord"/>
+<meta name="copyright" content="Studio Nord, inc. Copyright (c) 2014"/>
+
+<script src="//www.parsecdn.com/js/parse-1.2.18.min.js"></script>
+
+<link rel="stylesheet" href="css/foundation.css"/>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js">
+</script>
+
+<script type="text/javascript">
+
+
+//1401024249470782 : 1401023010055192
+
+var hash_value = "";
+var nextURL = "";
+var minID = "";
+var maxID = "";
+var instagramUrl = "";
+
+var tag = "jobatheavenonearth";
+var count = 50;
+var CLIENT_ID = 'd208e54829ce4803994f39f80caac900';
+var REDIRECT_URL = 'http://studionord.org/client/hillsidegram';
+
+var tokenURL = 'https://instagram.com/oauth/authorize/?client_id='+CLIENT_ID+'&redirect_uri='+REDIRECT_URL+'&response_type=token'
+		
+$(document).ready(function() {
+
+	Parse.initialize("eFuSJQZXg58dnnYiOgDZM8FZ4ZKnH8i0Ebe0Rxbi", "MRsv1pnv05LhWMQpXR9eJc0us5vad7difDbHK1Uw");
+	
+	//var instagramUrl = 'https://api.instagram.com/v1/tags/' + tag + '/media/recent?callback=?&count='+ count;
+	//$.getJSON(instagramUrl, access_parameters, onDataLoaded);
+	
+	if(window.location.hash) {
+		if (window.location.hash.indexOf("access_token") != -1) {
+			hash_value = window.location.hash.replace('#access_token=', '');		
+			//getNextPics();
+					//$('#target').append(instagramUrl);
+		} else {
+			hash_value = window.location.hash.replace('#', '');	
+			window.location = tokenURL;
+		}
+	} else {
+			hash_value = '';	
+			window.location = tokenURL;			
+	}
+	
+  });
+  
+function getNextPics()
+{
+	console.log("hash : " + maxID);
+	var access_parameters = {access_token:hash_value};
+		if(maxID.length <1){
+			instagramUrl = 'https://api.instagram.com/v1/tags/' + tag + '/media/recent?callback=?&count='+ count;
+			
+		}else{
+			 ///instagramUrl = 'https://api.instagram.com/v1/tags/' + tag + '/media/recent?callback=?&count='+ count;
+       		instagramUrl = 'https://api.instagram.com/v1/tags/' + tag + '/media/recent?callback=?&count='+ count + '?&max_tag_id=' + maxID;
+		}
+	$.getJSON(instagramUrl, access_parameters, onDataLoaded);		
+}
+  
+function onDataLoaded(instagram_data) {
+
+  if(instagram_data.meta.code == 200) {
+  
+  	console.log(instagram_data.pagination);
+  	console.log(nextURL);
+
+    nextURL = instagram_data.pagination.next_url;
+	minID = instagram_data.pagination.min_tag_id;
+	maxID = instagram_data.pagination.next_max_id;
+			
+    var photos = instagram_data.data;
+    
+    var maxLen = photos.length;
+    var curLen = 0;
+    
+	if(photos.length > 0) {
+      //since there are multiple objects in the payload we have
+      //to create a loop
+      
+      $('#target').append('<p>'+minID + " : " + maxID +'</p>');
+      for (var key in photos ){
+      
+      	curLen = 1;
+      	
+        var photo = photos[key];
+        
+        var InstaUser = Parse.Object.extend("Posts");
+		var instaUser = new InstaUser();
+		instaUser.save({
+			username:photo.user.username,
+			photolink:photo.link,
+			photoID:photo.id,
+			fullImage:photo.images.standard_resolution.url,
+			likes:photo.likes.count,
+			fullname:photo.user.full_name,
+			instaID:photo.user.id,
+		}).then(function(object) {
+			//saved
+			//userIDs.push(object.get("objectId"));
+     	    //getUserFollowers(object.id,photo.user.id);
+			//Parse.Cloud.run('CALL', {id:object.id,insta:photo.user.id}, {
+  			//success: function(result) {
+    		//$('#target').append(result);
+  			//},
+  			//error: function(error) 
+  			//{
+  			//	$('#target').append("error");
+  			//}
+			//});
+			if(curLen==maxLen){
+				getNextPics();
+			}
+			curLen++;
+			
+		});
+        //if(photo.likes.count>100)
+        //{
+        //$('#target').append('<p>'+photo.user.username+' <a href="'+photo.link+'" target="_blank">likes : '+photo.likes.count+'</a></p>');
+        //}
+        //'<img src="' + photo.images.thumbnail.url + '">');-->
+        
+        //window.location = nextUrl;
+        
+        /// getNextPics();
+      }
+    }
+    else {
+      //if the photos variable doesn’t hold data
+      $('#target').append("Hmm.  I couldn’t find anything!");
+    }
+    }else  {
+      //if we didn’t get a 200 (success) request code from instagram
+      //then we display instagram’s error message instagram
+      var error = data.meta.error_message;
+      $('#target').append('Something happened, Instagram said: ' + error);
+    }
+  }
+
+function getUserFollowers(userID,instaID)
+{
+	Parse.Cloud.run('CALL', {id:userID,insta:instaID}, {
+  		success: function(result) {
+    		$('#target').append(result);
+  		},
+  		error: function(error) 
+  		{
+  			$('#target').append("error");
+  		}
+	});
+}
+
+var page = 0;
+var limitVar = 1000;
+var usernameArray = [];
+
+function setUsers()
+{
+	var query = new Parse.Query("Posts");
+	query.limit(limitVar);
+	query.skip(page);
+	query.find({
+  		success: function(results) {
+	    // Do something with the returned Parse.Object values
+	    
+	    for (var i = 0; i < results.length; i++) { 
+      		
+      		var object = results[i];
+      		var username = object.get("username");
+      		
+      		//console.log(username);
+      		      		
+      		if(usernameArray.indexOf(username) == -1)
+      		{
+      			//console.log("added to array")
+      			usernameArray.push(username);
+      			
+      			var InstaUser = Parse.Object.extend("InstagramUsers");
+						var instaUser = new InstaUser();
+ 						
+ 						var username = results[i].get("username");
+ 						var instaID = results[i].get("instaID");
+      					console.log(username);
+      					//console.log(instaID);
+      					
+      					instaUser.set("username", username);
+ 						instaUser.set("instaID",instaID);
+ 						
+						instaUser.save(null, {
+  							success: function(instaUser2) {
+    							//console.log('New object created with objectId: ' + instaUser2.id);
+ 					 		},
+  							error: function(gameScore, error) {
+    							console.log('Failed to create new object, with error code: ' + error.description);
+  							}
+						});
+      		}else{
+      			//console.log("not added");
+      		}   		
+      		console.log(usernameArray.length);
+      		
+      	}
+      	page = page + limitVar;
+      	console.log(page);
+      	setUsers();
+  		},
+  		error: function(error) {
+    			alert("Error: " + error.code + " " + error.message);
+  		}});
+}
+
+var userArray = [];
+var skipValue = 1000;
+
+function updateFollowerData(skipValue)
+{
+	var query = new Parse.Query("InstagramUsers");
+	query.ascending("username");
+	//query.ascending("follower");
+	//query.doesNotExist("follower");
+	//query.descending("username");
+	query.limit(1000);
+	query.skip(skipValue);
+	query.find({
+  		success: function(results) {
+	    	
+	    	userArray = results;
+	    	updateUser(0);
+	    },
+	    error: function(error){
+			alert(error);
+		}
+	});
+}
+
+var currentUser = 0;
+
+function updateUser(intVal){
+
+	currentUser = intVal;
+	
+	if(currentUser == 1001){
+		updateFollowerData(1000)
+		return;	
+	}
+
+	var user = userArray[intVal];
+	
+	console.log(user.id);
+	console.log(user.get("instaID"));
+	
+	var objectVal = user.id;
+	var instaID = user.get("instaID");
+	
+	Parse.Cloud.run('CALL2', {id:objectVal,insta:instaID}, {
+  		success: function(result) {
+    		//$('#target').append(result);
+    		console.log(currentUser);
+  			updateUser(currentUser+1);
+  		},
+  		error: function(error) 
+  		{
+  			console.log(currentUser);
+  			updateUser(currentUser+1);
+  		}
+	});
+	
+}
+</script>
+  
+</head>
+<body>
+ 
+<div class="row">
+<div class="large-12 columns">
+<div class="nav-bar right">
+
+</div>
+<h1>Hillside <small>insta-list</small></h1>
+<hr/>
+</div>
+</div>
+ 
+ 
+<div class="row">
+ 	<div id="target"></div>
+<div>
+
+<div>
+<button onclick="getNextPics()">Start</button>
+<button onclick="setUsers()">Get Users</button>
+<button onclick="updateFollowerData(1000)">Update Follows</button>
+</div>
+</div>
+
+</div>
+ 
+</body>
+</html>
