@@ -1,0 +1,130 @@
+<!doctype html>
+<!--[if IE 9]><html class="lt-ie10" lang="en" > <![endif]-->
+<html class="no-js" lang="en" data-useragent="Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.2; Trident/6.0)">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Gather</title>
+<meta name="description" content="Studio Nord"/>
+<meta name="author" content="Studio Nord"/>
+<meta name="copyright" content="Studio Nord, inc. Copyright (c) 2014"/>
+
+<script src="//www.parsecdn.com/js/parse-1.2.18.min.js"></script>
+
+<link rel="stylesheet" href="css/foundation.css"/>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js">
+</script>
+
+<script type="text/javascript">
+
+var hash_value = "";
+var instagramUrl = "";
+
+var CLIENT_ID = 'd208e54829ce4803994f39f80caac900';
+var REDIRECT_URL = 'http://studionord.org/client/hillsidegram';
+
+var tokenURL = 'https://instagram.com/oauth/authorize/?client_id='+CLIENT_ID+'&redirect_uri='+REDIRECT_URL+'&response_type=token'
+		
+$(document).ready(function() {
+
+	Parse.initialize("eFuSJQZXg58dnnYiOgDZM8FZ4ZKnH8i0Ebe0Rxbi", "MRsv1pnv05LhWMQpXR9eJc0us5vad7difDbHK1Uw");
+		
+	if(window.location.hash) {
+		if (window.location.hash.indexOf("access_token") != -1) {
+			hash_value = window.location.hash.replace('#access_token=', '');		
+			
+		} else {
+			hash_value = window.location.hash.replace('#', '');	
+			window.location = tokenURL;
+		}
+	} else {
+			hash_value = '';	
+			window.location = tokenURL;			
+	}
+});
+  
+function getPicData()
+{
+	var url = $('#imageID').val();
+	$('#results-table').empty();
+	console.log(url);
+	var access_parameters = {access_token:hash_value};
+	var requestURL = "http://api.instagram.com/oembed?url="+url+"&callback=?";
+	$.getJSON(requestURL, null, onPicDataLoaded);	
+}
+
+function onPicDataLoaded(data) 
+{
+	console.log(data);
+	getData(data.media_id);
+}
+
+function getData(id){
+	var access_parameters = {access_token:hash_value};
+	instagramUrl = "https://api.instagram.com/v1/media/"+id+"/likes?callback=?";
+	$.getJSON(instagramUrl, access_parameters, onDataLoaded);		
+}
+  
+function onDataLoaded(instagram_data) {
+
+  if(instagram_data.meta.code == 200) {
+  
+  	var likes = instagram_data.data;
+	
+	if(likes.length > 0) {
+		for (var key in likes )
+		{
+			var like = likes[key];
+		
+			console.log(like);
+			var username = like.username;
+			var userID = like.id;
+			var userProfile = like.profile_picture;
+			var name = like.full_name;
+			
+			//$('#target').append('<p>'+userID + ":" + name + '('+username+')' + '<img width=44 height=44 src='+userProfile+'/></p>');
+			$('#results-table').append('<tr><td>'+userID + '</td><td>' + name + '</td><td>'+username+'</td><td>' + '<img width=44 height=44 src='+userProfile+'/></td></tr>');
+		}
+		
+	}
+  }
+}
+</script>
+  
+</head>
+<body>
+ 
+<div class="row">
+<div class="large-12 columns">
+<div class="nav-bar right">
+
+</div>
+<h1>Insta<small>list</small></h1>
+<hr/>
+</div>
+</div>
+ 
+<div style="width:300px;margin: 0px auto;">
+<input id="imageID" size="35" type="text" class="form-control" placeholder="image ID">
+<button onclick="getPicData()">Start</button>
+</div>
+<div class="row">
+ 	<div id="target"></div>
+ 	<center>
+ 	<table id="results-table">
+    	<tr>
+    		<th>Image</th>
+      		<th width="250">Username</th>
+      		<th width="150">Likes</th>
+      		<th width="150">Link</th>
+    	</tr>
+  	</table>
+  	</center>
+<div>
+
+</div>
+
+</div>
+ 
+</body>
+</html>
